@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Minesweeper for js</title>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    
+    <body ondragstart="return false">
+        <div>
+            <div id="config">
+                <button class="b_op" onclick="set(9,9,10)">EASY (9x9 m10)</button>
+                <button class="b_op" onclick="set(16,16,40)">NORMAL (16x16 m40)</button>
+                <button class="b_op" onclick="set(16,30,99)">HARD (16x30 m99)</button>
+                <input type="checkbox" id="timelapse">Enable Time-lapse Mode
+            </div>
+            <div id="info">
+                <div class="info-item">Time
+                <span class="num" id="time">000</span></div>
+                <div class="info-item">Reset
+                
+                    <button class="control" id="mainbutton" onclick="formatCellArray()">( ◠‿◠ ) </button></div>
+                <div class="info-item">Auto Solver
+                
+                    <button class="control" id="solve" onclick="solve()">Solver</button></div>
+                <div class="info-item">Reveal
+                    <button class="control" id="showup" onclick="showup()">～(^｡^)</button></div>
+                <div class="info-item">Mine
+                <span class="num" id="mine">000</span></div>
+                <div class="info-item">3BV
+                <span class="num" id="s3bv">000</span></div>
+                <div class="info-item">Left-click
+                <span class="num" id="lcc">000</span></div>
+            </div>
+            <div id="cellcontainer" oncontextmenu="return false">
+            </div>
+        </div>
+    </body>
+    <script src="jsms.js"></script>
+    <script src="msauto.js"></script>
+</html>

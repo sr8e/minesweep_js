@@ -1,0 +1,89 @@
+@font-face{
+    font-family:"digit";
+    src:url("./font/7barSP.ttf") format("truetype");
+}
+#cellcontainer{
+    display:flex;
+    flex-flow:column nowrap;
+    margin:0 auto;
+    
+}
+.col{
+    
+    justify-content: center;
+    display:flex;
+    flex-flow: row nowrap;
+}
+.cell{
+    border:3px #666 outset;
+    height:30px;
+    width:30px;
+    background-color: #eeeeee;
+}
+.down{
+    border:3px #666 inset;
+}
+.flat{
+    border:1px #666 solid;
+    height:34px;
+    width:34px;
+    background-color:#cccccc;
+}
+
+.c_emp{
+    border:1px #f00 solid;
+}
+
+.c_edge{
+    border:1px #00f solid;
+}
+.c_ne{
+    border:1px #0f0 solid;
+}
+
+#info{
+    display:flex;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+.info-item{
+    display:flex;
+    flex-flow:column;
+    text-align: center;
+}
+#config{
+    text-align: center;
+    margin:10px 0;
+}
+.b_op{
+    border-radius: 3px;
+    border:1px #000 solid;
+    margin:0 20px;
+}
+p.conf-c{
+    text-align: center;
+}
+.num{
+    border:1px #444 solid;
+    background-color: #000;
+    color:#f00;
+    font-family: "digit",monospace;
+    font-size:30px;
+    margin:0 0.5em;
+    padding:10px 10px 5px;
+    vertical-align: bottom;
+}
+.control{
+    border-radius: 4px;
+    border:1px #333 solid;
+    min-height:30px;
+    min-width:6em;
+    margin:0 15px;
+    padding:10px;
+}
+.stimg{
+    height:auto;
+    width:auto;
+    max-width: 100%;
+    max-height: 100%;
+}
