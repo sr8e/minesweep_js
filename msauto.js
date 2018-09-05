@@ -52,7 +52,7 @@ function scan_basic() {
 
     ct++;
     b_solve.innerText = ct;
-    
+
     csc = deepcopy(csarr);
     for (var i = 0; i < h; i++) {
         for (var j = 0; j < w; j++) {
@@ -63,7 +63,7 @@ function scan_basic() {
             for (var k = 0; k < 8; k++) {
                 var c = i + DX[k],
                     r = j + DY[k];
-                if (0 <= c && c < h && 0 <= r && r < w) {
+                if (cond(0, c, h, 0, r, w)) {
                     if (csarr[c][r].state == 0) nfval++;
                     else if (csarr[c][r].state == 1) fval++;
 
@@ -75,7 +75,7 @@ function scan_basic() {
             for (var k = 0; k < 8; k++) {
                 var c = i + DX[k],
                     r = j + DY[k];
-                if (0 <= c && c < h && 0 <= r && r < w) {
+                if (cond(0, c, h, 0, r, w)) {
                     var s = csarr[c][r].state;
                     if (s == 0) safe ? opencell(c, r, false, true) : (flgd ? flag(c, r, 1) : null);
                 }
@@ -97,7 +97,7 @@ function scan_include() {
             for (var k = 0; k < 8; k++) {
                 var c = i + DX[k],
                     r = j + DY[k];
-                if (0 <= c && c < h && 0 <= r && r < w) {
+                if (cond(0, c, h, 0, r, w)) {
                     var cst = csarr[c][r].state;
                     if (cst == 0) set.push(c * w + r);
                     else if (cst == 1) vval--;
@@ -112,29 +112,46 @@ function scan_include() {
                     var c = i + d[x],
                         r = j + d[y];
                     if (x == 2 && y == 2) continue; //self comparation
-                    if (0 <= c && c < h && 0 <= r && r < w && csarr[c][r].state == 3) arset.push(makeset(c, r));
+                    if (cond(0, c, h, 0, r, w) && csarr[c][r].state == 3) arset.push(makeset(c, r));
                 }
             }
             for (var s in arset) {
                 var sa = arset[s];
                 if (include(set, sa)) {
                     var setd = diff(set, sa);
-                    console.log(set);
-                    console.log(sa);
-                    console.log(setd);
-                    console.log("---");
+                    //console.log(set);
+                    //console.log(sa);
+                    //console.log(setd);
+                    //console.log("---");
                     if (setd.vmval == 0) {
                         for (var k in setd.set) {
                             var coord = cnv(setd.set[k]);
                             opencell(coord[0], coord[1], false, true);
                         }
-                    } else if (setd.vmval == setd.set.length) {
+                    } else if (setd.vmval == setd.size()) {
                         for (var k in setd.set) {
                             var coord = cnv(setd.set[k]);
                             flag(coord[0], coord[1], 1);
                         }
                     }
 
+                } else {
+                    var setc = comm(set, sa);
+                    var setd = diff(set, sa);
+                    var minm = Math.max(0, sa.vmval - (sa.size() - setc.size())); //minimum number of mines which setc contains
+                    var maxm = Math.min(setc.size(), sa.vmval);
+
+                    if (minm == set.vmval) { //setd no longer contains any mines.
+                        for (var k in setd.set) {
+                            var coord = cnv(setd.set[k]);
+                            opencell(coord[0], coord[1], false, true);
+                        }
+                    } else if ((set.vmval - maxm) == setd.size()) {
+                        for (var k in setd.set) {
+                            var coord = cnv(setd.set[k]);
+                            flag(coord[0], coord[1], 1);
+                        }
+                    }
                 }
             }
 
@@ -153,7 +170,7 @@ function makeset(c, r) {
     for (var k = 0; k < 8; k++) {
         var i = c + DX[k],
             j = r + DY[k];
-        if (0 <= i && i < h && 0 <= j && j < w) {
+        if (cond(0, i, h, 0, j, w)) {
             if (csarr[i][j].state == 0) set.push(i * w + j);
             else if (csarr[i][j].state == 1) vval--;
         }
@@ -190,7 +207,7 @@ function include(se, ot) {
  * Note that property center will be inherited from se.
  *
  * @params CellSet se, ot: set of integers. each integer represents a coordinate of a cell.
- * @return CellSet whose set and vmval will be (se - ot).
+ * @return CellSet whose set and vmval is (se - ot).
  */
 function diff(se, ot) {
     var sd = se.copy();
@@ -201,6 +218,21 @@ function diff(se, ot) {
     }
     sd.vmval -= ot.vmval;
     return sd;
+}
+/**
+ * Returns common set of se and ot: se ∧ ot.
+ * Note that property center, vmval will be inherited from se.
+ *
+ * @params CellSet se, ot: set of integers. each integer represents a coordinate of a cell.
+ * @return CellSet whose set is (se ∧ ot).
+ */
+function comm(se, ot) {
+    var sc = new CellSet(se.c(), se.r());
+    sc.vmval = se.vmval;
+    for (var i in ot.set) {
+        if (se.set.indexOf(ot.set[i]) != -1) sc.push(ot.set[i]);
+    }
+    return sc;
 }
 
 function deepcopy(a) {

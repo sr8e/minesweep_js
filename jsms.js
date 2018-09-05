@@ -13,13 +13,18 @@ class CellSet {
         this.vmval = 0;
         this.center = [c, r];
     }
-
+    c() {
+        return this.center[0];
+    }
+    r() {
+        return this.center[1];
+    }
     push(v) {
         this.set.push(v);
         //this.parse();
     }
-    remove(p){
-        this.set.splice(p,1);
+    remove(p) {
+        this.set.splice(p, 1);
         //this.parse();
     }
     /*
@@ -30,19 +35,22 @@ class CellSet {
         }
     }
     */
-    isEmpty(){
-        return this.set.length==0;
+    isEmpty() {
+        return this.set.length == 0;
     }
-    copy(){
-        var ccs=new CellSet(this.center[0],this.center[1]);
-        ccs.set=Object.assign([],this.set)
-        ccs.vmval=this.vmval;
+    size() {
+        return this.set.length;
+    }
+    copy() {
+        var ccs = new CellSet(this.c(), this.r());
+        ccs.set = Object.assign([], this.set);
+        ccs.vmval = this.vmval;
         return ccs;
     }
 }
 
-const DX = [-1, 0, 1, -1, 1, -1, 0, 1]
-const DY = [-1, -1, -1, 0, 0, 1, 1, 1]
+const DX = [-1, 0, 1, -1, 1, -1, 0, 1];
+const DY = [-1, -1, -1, 0, 0, 1, 1, 1];
 
 /****** option ******/
 var h = 16;
@@ -252,7 +260,7 @@ function countstop() {
 }
 
 function formatstr(v, f, l) {
-    var n = Number(v)
+    var n = Number(v);
     if (isNaN(n)) n = 0;
     var s = n.toString().split(".");
     var int = s[0],
@@ -269,6 +277,13 @@ function formatstr(v, f, l) {
 
 
 }
+/**
+ * Returns (aunder <= a < aupper) && (bunder <= b < bupper).
+ */
+function cond(aunder, a, aupper, bunder, b, bupper) {
+    var c = aunder <= a && a < aupper && bunder <= b && b < bupper;
+    return c;
+}
 /****** control ******/
 
 /**
@@ -279,40 +294,56 @@ function formatstr(v, f, l) {
  * @params int m: number of mines to be placed
  */
 function placemine(c, r, m) {
-    if (m > w * h - 9 || m <= 0) {
+    const nmr = 3;
+    var nma = 2 * nmr * nmr + 2 * nmr + 1;
+    if (m > w * h - nma || m <= 0) {
         alert("Invalid Number!");
         return;
     }
     var invert = false;
-    if (m > (w * h - 9) / 2) {
+    if (m > (w * h - nma) / 2) {
         invert = true;
-        m = w * h - 9 - m;
+        m = w * h - nma - m;
 
     }
+
+    //to prevent dead end
+    const dr = 0.75;
+    var bc = Math.max(w - 6, 0) * Math.max(h - 6, 0);
+    var bp = w * h - bc;
+    var mc = Math.round(bc * m / (bc + bp * dr));
+    var mp = m - mc;
+
 
     //generate unique m pairs of (c,r)
     //(c,r) corelates with c*w+r
-    var co = [];
-    while (co.length != m) {
+    var co_c = [];
+    var co_p = [];
+    while (co_c.length != mc || co_p.length != mp) {
         var ran = parseInt(Math.random() * h * w);
         var ct = cnv(ran)[0],
-            rt = cnv(ran)[1]
-        if (Math.abs(ct - c) <= 1 && Math.abs(rt - r) <= 1) continue;
-        if (co.indexOf(ran) != -1) continue;
-        co.push(ran);
+            rt = cnv(ran)[1];
+        if (Math.abs(ct - c) + Math.abs(rt - r) <= nmr) continue;
+        var cen = cond(3, ct, h - 3, 3, rt, w - 3);
+        if (cen && co_c.length != mc && co_c.indexOf(ran) == -1) //center
+            co_c.push(ran);
+        else if (!cen && co_p.length != mp && co_p.indexOf(ran) == -1)
+            co_p.push(ran);
     }
-    //console.log(co);
+
     for (var i = 0; i < h; i++) {
         for (var j = 0; j < w; j++) {
-            csarr[i][j].mine = (co.indexOf(i * w + j) != -1) != invert;
-            if (Math.abs(i - c) <= 1 && Math.abs(j - r) <= 1) csarr[i][j].mine = false;
+            csarr[i][j].mine = ((cond(3, ct, h - 3, 3, rt, w - 3) ? co_c : co_p).indexOf(i * w + j) != -1) != invert;
+            if (Math.abs(i - c) + Math.abs(j - r) <= nmr) csarr[i][j].mine = false;
         }
     }
-    co.forEach(function (v) {
+    var mp = function (v) {
         var ct = cnv(v)[0],
             rt = cnv(v)[1];
         csarr[ct][rt].mine = !invert;
-    });
+    }
+    co_c.forEach(mp);
+    co_p.forEach(mp);
     gamestate = 1;
     countstart();
 }
@@ -332,7 +363,7 @@ function calcval() {
             for (var k = 0; k < 8; k++) {
                 var c = i + DX[k],
                     r = j + DY[k];
-                if (0 <= c && c < h && 0 <= r && r < w)
+                if (cond(0, c, h, 0, r, w))
                     val += csarr[c][r].mine ? 1 : 0;
 
             }
@@ -366,7 +397,7 @@ function opencell(c, r, ar, count) {
         for (var k = 0; k < 8; k++) {
             var i = c + DX[k],
                 j = r + DY[k];
-            if (0 <= i && i < h && 0 <= j && j < w && csarr[i][j].state == 1) {
+            if (cond(0, i, h, 0, j, w) && csarr[i][j].state == 1) {
                 arf++;
 
             }
@@ -376,7 +407,7 @@ function opencell(c, r, ar, count) {
         for (var k = 0; k < 8; k++) {
             var i = c + DX[k],
                 j = r + DY[k];
-            if (0 <= i && i < h && 0 <= j && j < w && csarr[i][j].state == 0) {
+            if (cond(0, i, h, 0, j, w) && csarr[i][j].state == 0) {
                 opencell(i, j, false, ar);
             }
 
@@ -453,7 +484,7 @@ function calc3BV() {
                 for (var k = 0; k < 8; k++) {
                     var c = i + DX[k],
                         r = j + DY[k];
-                    if (0 <= c && c < h && 0 <= r && r < w && csarr[c][r].val == 0)
+                    if (cond(0, c, h, 0, r, w) && csarr[c][r].val == 0)
                         edge = true;
 
                 }
@@ -476,7 +507,7 @@ function calc3BV() {
                     for (var k = 0; k < 8; k++) {
                         var ct = c + DX[k],
                             rt = r + DY[k];
-                        if (0 <= ct && ct < h && 0 <= rt && rt < w) {
+                        if (cond(0, ct, h, 0, rt, w)) {
                             if (csarr[ct][rt].reach === undefined && csarr[ct][rt].val == 0) {
                                 queue.push([ct, rt]);
                             }
@@ -490,6 +521,6 @@ function calc3BV() {
     }
     _3bv = nec + ecg;
     document.getElementById("s3bv").innerText = formatstr(_3bv, 3, 0);
-    console.log(nec + "," + ecg);
+    //console.log(nec + "," + ecg);
 
 }
