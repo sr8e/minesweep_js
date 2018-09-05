@@ -2,7 +2,7 @@
 This is Minesweeper with auto-solve function.
 
 ### Mine4js
-This is a minesweeper application, controlled by `msjs.js`.
+This is a minesweeper application, controlled by `jsms.js`.
 
 ### AutoSolver
 Controlled by `msauto.js`.
